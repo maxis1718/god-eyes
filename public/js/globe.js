@@ -13,10 +13,11 @@ var FOV = 45;                       // Camera field of view
 var NEAR = 1;                       // Camera near
 var FAR = 150000;                   // Draw distance
 
-var PUB_COLOR = 'crimson'
-var SUB_COLOR = 'chartreuse'
-var TRANSACTION_COLOR = '#F1C40F'
+let PUB_COLOR = 'crimson'
+let SUB_COLOR = 'chartreuse'
+let TRANSACTION_COLOR = '#F1C40F'
 let TRANSACTION_DURATION = 10000
+let LINE_DRAWING_DURATION = 1800
 
 // Use the visibility API to avoid creating a ton of data when the user is not looking
 var VISIBLE = true;
@@ -27,7 +28,13 @@ var target = {
   x: -2,
   y: 0,
   zoom: 2500
-};
+}
+
+let consumed = {
+  pub: 0,
+  sub: 0,
+  lesson: 0
+}
 
 var Shaders = {
   'earth' : {
@@ -364,6 +371,7 @@ function addData(publish, subscribes) {
   // collect x,y of pub pubPoints for canvas
   let { lon, lat } = pubLatLon
   let { x, y } = getAxisOnCanvas({ lon, lat })
+  consumed.pub += 1
   pubPoints.push({ x, y, time: Date.now() })
 
   for (var i = 0; i < subscribes.length; i++) {
@@ -376,13 +384,13 @@ function addData(publish, subscribes) {
     // collect x,y of sub points for canvas
     let { lon, lat } = subLatLon
     let { x, y } = getAxisOnCanvas({ lon, lat })
+    consumed.sub += 1
     subPoints.push({ x, y, time: Date.now() })
 
     var tween = tweenPoints(
       geometry,
       linePoints,
-      // Math.random() * 500 + 200,
-      1500,
+      LINE_DRAWING_DURATION,
       tweenFnEaseOut
     );
 
@@ -396,6 +404,7 @@ function addData(publish, subscribes) {
 function addPointData(point) {
   let { lat, lng, amount } = point
   let { x, y } = getAxisOnCanvas({ lat, lon: lng })
+  consumed.lesson += 1
   lessonPoints.push({ x, y, amount, time: Date.now() })
 
   setTimeout(() => {
@@ -406,12 +415,12 @@ function addPointData(point) {
 // Move the globe automatically if idle
 function checkIdle() {
   if (IDLE === true) {
-    target.x -= 0.004;
+    target.x -= 0.0035;
 
-    if (target.y > 0) target.y -= 0.004;
-    if (target.y < 0) target.y += 0.004;
+    if (target.y > 0) target.y -= 0.002;
+    if (target.y < 0) target.y += 0.002;
 
-    if (Math.abs(target.y) < 0.5) target.y = 0.5;
+    if (Math.abs(target.y) < 0.4) target.y = 0.4;
   }
 };
 
@@ -424,7 +433,7 @@ function addOverlay() {
   var material = new THREE.MeshBasicMaterial({
     map: overlay,
     transparent: true,
-    opacity: 0.7,
+    opacity: 0.75,
     blending: THREE.AdditiveBlending
   });
 
@@ -437,6 +446,8 @@ function renderPointsToCanvas({ points, color, amount }) {
     let pointSize = amount && Math.sqrt(amount)*1.173 || 7
     ctx.fillStyle = color
     ctx.globalAlpha = 1.0
+    ctx.shadowBlur = 50
+    ctx.shadowColor = 'azure'
     ctx.beginPath()
     ctx.arc(x, y, pointSize, 0, 2*Math.PI, false)
     ctx.fill()
@@ -445,8 +456,17 @@ function renderPointsToCanvas({ points, color, amount }) {
 
 // Main render loop
 var rotation = { x: 0, y: 0 };
+let messageSize = firebaseData.message.length
+let lessonSize = firebaseData.lesson.length
+
 function render() {
   tweenPoint();
+
+  // clear all points when all points consumed
+  if (consumed.pub === messageSize && consumed.sub === messageSize) {
+    pubPoints = []
+    subPoints = []
+  }
 
   // Draw our publish points every frame
   ctx.clearRect(0,0,1024,512);
