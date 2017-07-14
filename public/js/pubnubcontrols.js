@@ -45,10 +45,10 @@
   });
 
   function update_occupancy(here_now) {
-    p.$("active_players").innerHTML = here_now || (
-      "Join now! " +
-      '<img src="assets/gear.png" alt="loading..." class="spin">'
-    );
+    // p.$("active_players").innerHTML = here_now || (
+    //   "Join now! " +
+    //   '<img src="assets/gear.png" alt="loading..." class="spin">'
+    // );
   }
 
   p.here_now({
