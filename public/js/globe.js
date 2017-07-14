@@ -13,6 +13,9 @@ var FOV = 45;                       // Camera field of view
 var NEAR = 1;                       // Camera near
 var FAR = 150000;                   // Draw distance
 
+var PUB_COLOR = '#F1C40F'
+var SUB_COLOR = '#FFFFFF'
+
 // Use the visibility API to avoid creating a ton of data when the user is not looking
 var VISIBLE = true;
 
@@ -116,7 +119,6 @@ var skybox = new THREE.Mesh(new THREE.CubeGeometry(100000, 100000, 100000), mate
 scene.add(skybox);
 
 // Function for adding the earth, atmosphere, and the moon
-var pivot;
 function addEarth() {
   // Add sphere earth geometry
   var spGeo = new THREE.SphereGeometry(600,50,50);
@@ -151,23 +153,6 @@ function addEarth() {
   mesh = new THREE.Mesh(spGeo, material);
   mesh.scale.set(1.1, 1.1, 1.1);
   scene.add(mesh);
-
-  // Add moon
-  // pivot = new THREE.Object3D();
-  // var geometry = new THREE.SphereGeometry(60, 50, 50);
-
-  // var tex = THREE.ImageUtils.loadTexture('assets/pubnub.png');
-  // material = new THREE.MeshBasicMaterial({
-  //   map: tex
-  // });
-
-  // mesh = new THREE.Mesh(geometry, material);
-  // mesh.position.set(300, 0, 1500);
-  // mesh.rotation.x -= 0.6;
-  // mesh.rotation.y -= 1;
-  // mesh.rotation.z += 0;
-  // pivot.add(mesh);
-  // scene.add(pivot);
 }
 
 // Calculate a Vector3 from given lat/long
@@ -326,7 +311,8 @@ function tweenPoint() {
 }
 
 var lines = [],
-    points = [],
+    pubPoints = [],
+    subPoints = [],
     lineColors = [],
     ctx = document.querySelector('#canvas').getContext('2d');
 
@@ -339,36 +325,43 @@ var lines = [],
 
     lineColors.push(new THREE.LineBasicMaterial({
       color: c,
-      linewidth: 2
+      linewidth: 20
     }));
   }
 })();
 
+function getAxisOnCanvas({ lon, lat }) {
+  return {
+    x: ((1024/360.0) * (180 + lon)),
+    y: ((512/180.0) * (90 - lat))
+  }
+}
+
+function stopDrawingPoints({ points, age }) {
+  var i = points.length
+  while(i--) {
+    // console.log('>>> time:', points[i].time)
+    if (Date.now() - points[i].time > age) {
+      points.splice(i, 1)
+    }
+  }
+}
+
 // Takes pub/sub data and converts them to lines
 function addData(publish, subscribes) {
   // Stop drawing points that have been around too long
-  var i = points.length;
-  while(i--) {
-    if (Date.now() - points[i].time > 1000) {
-      points.splice(i, 1);
-    }
-  }
-
-  // console.log('>>> publish:', publish, 'subscribes:', subscribes)
+  stopDrawingPoints({ points: pubPoints, age: 1000})
+  stopDrawingPoints({ points: subPoints, age: 1000})
 
   // Convert lat/lon into 3d bezier curve and 2d texture point for drawing
   var pubLatLon = { lat: publish[0], lon: publish[1] };
   var pubVec3 = latLonToVector3(pubLatLon.lat, pubLatLon.lon);
   var materialIndex = Math.floor(Math.random() * 10);
 
-  var pub_x =   ((1024/360.0) * (180 + pubLatLon.lon));
-  var pub_y =   ((512/180.0) * (90 - pubLatLon.lat));
-
-  points.push({
-    x: pub_x,
-    y: pub_y,
-    time: Date.now()
-  });
+  // collect x,y of pub pubPoints for canvas
+  let { lon, lat } = pubLatLon
+  let { x, y } = getAxisOnCanvas({ lon, lat })
+  pubPoints.push({ x, y, time: Date.now() })
 
   for (var i = 0; i < subscribes.length; i++) {
     var subLatLon = { lat: subscribes[i][0], lon: subscribes[i][1] };
@@ -377,10 +370,16 @@ function addData(publish, subscribes) {
     var linePoints = bezierCurveBetween(pubVec3, subVec3);
     var geometry = getGeom(linePoints);
 
+    // collect x,y of sub points for canvas
+    let { lon, lat } = subLatLon
+    let { x, y } = getAxisOnCanvas({ lon, lat })
+    subPoints.push({ x, y, time: Date.now() })
+
     var tween = tweenPoints(
       geometry,
       linePoints,
-      Math.random() * 500 + 200,
+      // Math.random() * 500 + 200,
+      1500,
       tweenFnEaseOut
     );
 
@@ -420,6 +419,16 @@ function addOverlay() {
   scene.add(meshOverlay);
 }
 
+function renderPointsToCanvas({ points, color }) {
+  points.map(({x ,y}) => {
+    ctx.fillStyle = color
+    ctx.globalAlpha = 1.0
+    ctx.beginPath()
+    ctx.arc(x, y, 7, 0, 2*Math.PI, false)
+    ctx.fill()
+  })
+}
+
 // Main render loop
 var rotation = { x: 0, y: 0 };
 function render() {
@@ -427,17 +436,12 @@ function render() {
 
   // Draw our publish points every frame
   ctx.clearRect(0,0,1024,512);
-  for (var i = 0; i < points.length; i++) {
-    ctx.fillStyle = "#F1C40F";
-    ctx.globalAlpha = 0.5;
-    ctx.beginPath();
-    ctx.arc(points[i].x, points[i].y, 7, 0, 2*Math.PI, false);
-    ctx.fill();
-  };
+
+  // render pub/sub points to canvas
+  renderPointsToCanvas({ points: pubPoints, color: PUB_COLOR })
+  renderPointsToCanvas({ points: subPoints, color: SUB_COLOR })
 
   overlay.needsUpdate = true;
-
-  // pivot.rotation.y += 0.01;
 
   rotation.x += (target.x - rotation.x) * 0.1;
   rotation.y += (target.y - rotation.y) * 0.1;
