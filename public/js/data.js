@@ -45,8 +45,8 @@ firebaseData.lesson.forEach(dataVal => {
     }, sendWhen / LESSON_SPEED_UP)
   } else{
     handleLesson(dataVal);
-    msgState.firstEventTriggerTime = new Date()
-    msgState.firstMsgTime = new Date(dataVal.createdAt)
+    lessonState.firstEventTriggerTime = new Date()
+    lessonState.firstMsgTime = new Date(dataVal.createdAt)
   }
 })
 
