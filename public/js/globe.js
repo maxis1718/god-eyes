@@ -390,6 +390,10 @@ function addData(publish, subscribes) {
   }
 }
 
+function addPointData(points) {
+  //
+}
+
 // Move the globe automatically if idle
 function checkIdle() {
   if (IDLE === true) {

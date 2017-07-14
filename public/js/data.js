@@ -1,3 +1,5 @@
+let SPEED_UP = 60
+
 function buildMessageLink(msg) {
   if (VISIBLE) {
     addData(msg.pub, msg.subs);
@@ -5,29 +7,28 @@ function buildMessageLink(msg) {
 }
 
 // Get a reference to the database service
-var database = firebase.database()
-console.log('>>> [firebase] connect')
-var starCountRef = firebase.database().ref('events')
+// var database = firebase.database()
+// console.log('>>> [firebase] connect')
+// var starCountRef = firebase.database().ref('events')
 
 var msgState = {
-  lastEventTriggerTime: null,
-  lastMsgTime: null
+  firstEventTriggerTime: null,
+  firstMsgTime: null
 }
-starCountRef.on('value', function(data) {
-  var dataVal = data.val()
-  if(dataVal.eventType == 'message') {
-    if(msgState.lastEventTriggerTime){
-      var dis = new Date(dataVal.createdAt).getTime() - msgState.lastMsgTime.getTime()
-      var sendWhen = (msgState.lastEventTriggerTime.getTime() + dis) - new Date().getTime()
-      console.log(sendWhen)
-      setTimeout(function(){
-        handleMsg(dataVal);
-      }, sendWhen)
-    }else{
+
+firebaseData.message.forEach(dataVal => {
+
+  if (msgState.firstEventTriggerTime) {
+    var dis = new Date(dataVal.createdAt).getTime() - msgState.firstMsgTime.getTime()
+    var sendWhen = (msgState.firstEventTriggerTime.getTime() + dis) - new Date().getTime()
+    console.log(sendWhen)
+    setTimeout(function(){
       handleMsg(dataVal);
-    }
-    msgState.lastEventTriggerTime = new Date()
-    msgState.lastMsgTime = new Date(dataVal.createdAt)
+    }, sendWhen / SPEED_UP)
+  }else{
+    handleMsg(dataVal);
+    msgState.firstEventTriggerTime = new Date()
+    msgState.firstMsgTime = new Date(dataVal.createdAt)
   }
 })
 

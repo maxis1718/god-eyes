@@ -127,6 +127,12 @@
       };
       firebase.initializeApp(config);
     </script>
+    <script>
+      // Global var for mocking firebase
+      var firebaseData = {
+        message: <%- JSON.stringify(message) %>
+      }
+    </script>
   </head>
   <body>
     <script>
