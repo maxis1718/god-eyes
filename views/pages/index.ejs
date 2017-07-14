@@ -1,3 +1,5 @@
+<!-- views/pages/index.ejs -->
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -116,8 +118,9 @@
     <script>
       // Initialize Firebase
       // TODO: Replace with your project's customized code snippet
+      var firebaseKey = <%- JSON.stringify(firebaseKey) %>
       var config = {
-        apiKey: "",
+        apiKey: firebaseKey,
         authDomain: "cm-god-eyes.firebaseapp.com",
         databaseURL: "https://cm-god-eyes.firebaseio.com",
         storageBucket: "cm-god-eyes.appspot.com"
