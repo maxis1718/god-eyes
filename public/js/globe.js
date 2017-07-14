@@ -13,8 +13,10 @@ var FOV = 45;                       // Camera field of view
 var NEAR = 1;                       // Camera near
 var FAR = 150000;                   // Draw distance
 
-var PUB_COLOR = '#F1C40F'
-var SUB_COLOR = '#FFFFFF'
+var PUB_COLOR = 'crimson'
+var SUB_COLOR = 'chartreuse'
+var TRANSACTION_COLOR = '#F1C40F'
+let TRANSACTION_DURATION = 10000
 
 // Use the visibility API to avoid creating a ton of data when the user is not looking
 var VISIBLE = true;
@@ -313,6 +315,7 @@ function tweenPoint() {
 var lines = [],
     pubPoints = [],
     subPoints = [],
+    lessonPoints = [],
     lineColors = [],
     ctx = document.querySelector('#canvas').getContext('2d');
 
@@ -390,19 +393,25 @@ function addData(publish, subscribes) {
   }
 }
 
-function addPointData(points) {
-  //
+function addPointData(point) {
+  let { lat, lng, amount } = point
+  let { x, y } = getAxisOnCanvas({ lat, lon: lng })
+  lessonPoints.push({ x, y, amount, time: Date.now() })
+
+  setTimeout(() => {
+    lessonPoints.shift()
+  }, TRANSACTION_DURATION)
 }
 
 // Move the globe automatically if idle
 function checkIdle() {
   if (IDLE === true) {
-    target.x -= 0.001;
+    target.x -= 0.004;
 
-    if (target.y > 0) target.y -= 0.001;
-    if (target.y < 0) target.y += 0.001;
+    if (target.y > 0) target.y -= 0.004;
+    if (target.y < 0) target.y += 0.004;
 
-    if (Math.abs(target.y) < 0.01) target.y = 0;
+    if (Math.abs(target.y) < 0.5) target.y = 0.5;
   }
 };
 
@@ -423,12 +432,13 @@ function addOverlay() {
   scene.add(meshOverlay);
 }
 
-function renderPointsToCanvas({ points, color }) {
-  points.map(({x ,y}) => {
+function renderPointsToCanvas({ points, color, amount }) {
+  points.map(({ x ,y, amount }) => {
+    let pointSize = amount && Math.sqrt(amount)*1.173 || 7
     ctx.fillStyle = color
     ctx.globalAlpha = 1.0
     ctx.beginPath()
-    ctx.arc(x, y, 7, 0, 2*Math.PI, false)
+    ctx.arc(x, y, pointSize, 0, 2*Math.PI, false)
     ctx.fill()
   })
 }
@@ -444,12 +454,13 @@ function render() {
   // render pub/sub points to canvas
   renderPointsToCanvas({ points: pubPoints, color: PUB_COLOR })
   renderPointsToCanvas({ points: subPoints, color: SUB_COLOR })
+  renderPointsToCanvas({ points: lessonPoints, color: TRANSACTION_COLOR })
 
   overlay.needsUpdate = true;
 
   rotation.x += (target.x - rotation.x) * 0.1;
   rotation.y += (target.y - rotation.y) * 0.1;
-  DISTANCE += (target.zoom - DISTANCE) * 0.3;
+  DISTANCE += (target.zoom - DISTANCE) * 0.5;
 
   checkIdle();
 

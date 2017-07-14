@@ -1,5 +1,5 @@
 var MSG_SPEED_UP = 60
-var LESSON_SPEED_UP = 60
+var LESSON_SPEED_UP = 1440
 
 function buildMessageLink(msg) {
   if (VISIBLE) {
@@ -76,7 +76,7 @@ function handleMsg(data) {
 }
 
 function handleLesson(data) {
-  appPointData({
+  addPointData({
     lat: data.sLatitude,
     lng: data.sLongitude,
     amount: data.amount
