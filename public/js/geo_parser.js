@@ -3,9 +3,8 @@ function exPubSub (series) {
   var subs = {}; // Keys = Channel. Values = Subs.
 
   series.forEach(function(g) {
-    // console.log('>>> g:', g)
     var channel = g.channel;
-    if (g.lat && g.lng) { // I'm a PUB
+    if (g.lat && g.lng) {
       if (validGeolocFilter([g.lat, g.lng])) {
         if (!(channel in subs)) {
           subs[channel] = [];
@@ -13,7 +12,7 @@ function exPubSub (series) {
         subs[channel].push([g.lat, g.lng]);
       }
     }
-    if (g.geos.length) { // I'm a SUB
+    if (g.geos.length) { // I'm a PUB
       g.geos.filter(validGeolocFilter).forEach(function(sub) {
         if (!(channel in pubs)) {
           pubs[channel] = [];
@@ -31,7 +30,7 @@ function exPubSub (series) {
     for (var j = 0; j < pubs[chan].length; j++) {
       var curPub = pubs[chan][j];
       var curSubss = subs[chan];
-      if (curPub && curSubss && curSubss.length > 1) {
+      if (curPub && curSubss) {
         var curSubs = curSubss;
         pubSubList.push({pub : curPub, subs: curSubs});
       }
