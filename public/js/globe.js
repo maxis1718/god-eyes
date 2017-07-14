@@ -153,21 +153,21 @@ function addEarth() {
   scene.add(mesh);
 
   // Add moon
-  pivot = new THREE.Object3D();
-  var geometry = new THREE.SphereGeometry(60, 50, 50);
+  // pivot = new THREE.Object3D();
+  // var geometry = new THREE.SphereGeometry(60, 50, 50);
 
-  var tex = THREE.ImageUtils.loadTexture('assets/pubnub.png');
-  material = new THREE.MeshBasicMaterial({
-    map: tex
-  });
+  // var tex = THREE.ImageUtils.loadTexture('assets/pubnub.png');
+  // material = new THREE.MeshBasicMaterial({
+  //   map: tex
+  // });
 
-  mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(300, 0, 1500);
-  mesh.rotation.x -= 0.6;
-  mesh.rotation.y -= 1;
-  mesh.rotation.z += 0;
-  pivot.add(mesh);
-  scene.add(pivot);
+  // mesh = new THREE.Mesh(geometry, material);
+  // mesh.position.set(300, 0, 1500);
+  // mesh.rotation.x -= 0.6;
+  // mesh.rotation.y -= 1;
+  // mesh.rotation.z += 0;
+  // pivot.add(mesh);
+  // scene.add(pivot);
 }
 
 // Calculate a Vector3 from given lat/long
@@ -354,6 +354,8 @@ function addData(publish, subscribes) {
     }
   }
 
+  // console.log('>>> publish:', publish, 'subscribes:', subscribes)
+
   // Convert lat/lon into 3d bezier curve and 2d texture point for drawing
   var pubLatLon = { lat: publish[0], lon: publish[1] };
   var pubVec3 = latLonToVector3(pubLatLon.lat, pubLatLon.lon);
@@ -435,7 +437,7 @@ function render() {
 
   overlay.needsUpdate = true;
 
-  pivot.rotation.y += 0.01;
+  // pivot.rotation.y += 0.01;
 
   rotation.x += (target.x - rotation.x) * 0.1;
   rotation.y += (target.y - rotation.y) * 0.1;

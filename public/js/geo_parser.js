@@ -3,6 +3,7 @@ function exPubSub (series) {
   var subs = {}; // Keys = Channel. Values = Subs.
 
   series.forEach(function(g) {
+    // console.log('>>> g:', g)
     var channel = g.channel;
     if (g.lat && g.lng) { // I'm a PUB
       if (validGeolocFilter([g.lat, g.lng])) {
@@ -21,7 +22,7 @@ function exPubSub (series) {
       });
     }
   });
-  
+
   var channels = Object.keys(pubs);
   var pubSubList = [];
   for (var i = 0; i < channels.length; i++) {
@@ -53,7 +54,7 @@ var vecDiff = function(a, b) {
 }
 
 // prevents unresolvable geos from being drawn on the map. typically they come as integers between [-3, 3]
-function validGeolocFilter (geo) {  
+function validGeolocFilter (geo) {
      var lat = Math.abs(geo[0]),
          lng = Math.abs(geo[1]);
 
