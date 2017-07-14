@@ -8,7 +8,7 @@ app.use(express.static(__dirname + '/public'))
 
 app.get('/', (req,res) => {
   res.render('pages/index', {
-    firebaseKey: process.env.FIREBASE_KEY
+    firebaseKey: process.env.FIREBASE_KEY || ''
   })
 })
 
