@@ -4,52 +4,31 @@ function handleMsg(msg) {
   }
 }
 
-let mockGeoMap = [{
-  // sub
-  channel: 'kerker',
-  lat: 25,
-  lng: 121,
-  geos: []
-}, {
-  // sub
-  channel: 'kerker',
-  lat: 25,
-  lng: 121,
-  geos: []
-}, {
-  // sub
-  channel: 'kerker',
-  lat: 25,
-  lng: 121,
-  geos: []
-}, {
-  // pub
-  channel: 'kerker',
-  lat: null,
-  lng: null,
-  geos: [[25, 121], [25, 121], [25, 121]]
-}]
+// Get a reference to the database service
+var mockGeoMap = []
+var database = firebase.database()
+var starCountRef = firebase.database().ref('events')
+starCountRef.on('value', function(data) {
+  Object.values(data.val()).forEach(function(d) {
+    mockGeoMap.push({
+      channel: d.id,
+      lat: parseFloat(d.rLatitude),
+      lng: parseFloat(d.rLongitude),
+      geos: []
+    })
+    mockGeoMap.push({
+      channel: d.id,
+      lat: null,
+      lng: null,
+      geos: [[parseFloat(d.sLatitude), parseFloat(d.sLongitude)]]
+    })
+  })
+})
 
-var pubnub = PUBNUB.init({
-  publish_key   : "demo",
-  subscribe_key : "e19f2bb0-623a-11df-98a1-fbd39d75aa3f",
-  ssl           : true
-});
-var timeStamps = [];
-pubnub.subscribe({
-  channel  : "rts-xNjiKP4Bg4jgElhhn9v9-geo-map",
-  callback : function(msg){
-    // console.log('>>> msg:', msg.geo_map.filter(x => x.geos.length > 0))
-    // msg.map(x => x.channel)
-    // timeStamps = timeStamps.concat(msg.geo_map);
-    // console.log('>> msg.geo_map:', msg.geo_map)
-    timeStamps = mockGeoMap
-  }
-});
 var k;
 var z = setInterval(function() {
-  var x = exPubSub(timeStamps);
-  timeStamps = [];
+  var x = exPubSub(mockGeoMap);
+  // mockGeoMap = [];
   var count = 0;
   clearInterval(k);
   k = setInterval(function() {
