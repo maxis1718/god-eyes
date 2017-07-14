@@ -129,8 +129,11 @@
     </script>
     <script>
       // Global var for mocking firebase
+      var message = <%- JSON.stringify(message) %>
+      var lesson = <%- JSON.stringify(lesson) %>
       var firebaseData = {
-        message: <%- JSON.stringify(message) %>
+        message: message,
+        lesson: lesson
       }
     </script>
   </head>

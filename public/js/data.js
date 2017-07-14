@@ -1,4 +1,5 @@
-let SPEED_UP = 60
+var MSG_SPEED_UP = 60
+var LESSON_SPEED_UP = 60
 
 function buildMessageLink(msg) {
   if (VISIBLE) {
@@ -17,16 +18,33 @@ var msgState = {
 }
 
 firebaseData.message.forEach(dataVal => {
-
   if (msgState.firstEventTriggerTime) {
     var dis = new Date(dataVal.createdAt).getTime() - msgState.firstMsgTime.getTime()
     var sendWhen = (msgState.firstEventTriggerTime.getTime() + dis) - new Date().getTime()
-    console.log(sendWhen)
     setTimeout(function(){
       handleMsg(dataVal);
-    }, sendWhen / SPEED_UP)
-  }else{
+    }, sendWhen / MSG_SPEED_UP)
+  } else{
     handleMsg(dataVal);
+    msgState.firstEventTriggerTime = new Date()
+    msgState.firstMsgTime = new Date(dataVal.createdAt)
+  }
+})
+
+var lessonState = {
+  firstEventTriggerTime: null,
+  firstLessonTIme: null
+}
+
+firebaseData.lesson.forEach(dataVal => {
+  if (lessonState.firstEventTriggerTime) {
+    var dis = new Date(dataVal.createdAt).getTime() - lessonState.firstMsgTime.getTime()
+    var sendWhen = (lessonState.firstEventTriggerTime.getTime() + dis) - new Date().getTime()
+    setTimeout(function(){
+      handleLesson(dataVal);
+    }, sendWhen / LESSON_SPEED_UP)
+  } else{
+    handleLesson(dataVal);
     msgState.firstEventTriggerTime = new Date()
     msgState.firstMsgTime = new Date(dataVal.createdAt)
   }
@@ -49,10 +67,18 @@ function msgGenerator(d) {
   return mockMsg
 }
 
-function handleMsg(data){
+function handleMsg(data) {
   var mockGeoMap = msgGenerator(data)
   var x = exPubSub(mockGeoMap)
   for(var count = 0 ; count < x.length ; count++) {
     buildMessageLink(x[count])
   }
+}
+
+function handleLesson(data) {
+  appPointData({
+    lat: data.sLatitude,
+    lng: data.sLongitude,
+    amount: data.amount
+  })
 }
